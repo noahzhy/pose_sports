@@ -13,7 +13,7 @@ from estimate_keypoints import SKP
 Coordinate = namedtuple("Coordinate", ["x", "y"])
 SkeletonKeypoints = namedtuple("SkeletonKeypoints", ["joints", "confidences", "id"])
 
-RES_PATH = 'arts_res'
+RES_PATH = 'sports_res_img'
 SKP_PATH = 'skp_output'
 
 def load_res():
