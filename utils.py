@@ -1,5 +1,6 @@
 # from tkinter import *
 import os
+import cv2
 import sys
 import glob
 import json
@@ -102,6 +103,12 @@ def load_res_by_persons(num):
     if not res_support:
         return [os.path.join(RES_PATH, '999_000.jpg')]
     return res_support
+
+
+def get_img_by_frames(cap, num_frame):
+    cap.set(cv2.CAP_PROP_POS_FRAMES, int(num_frame))
+    ret, frame = cap.read()
+    cv2.imwrite('sports_res_img/squat_{:03d}.jpg'.format(int(num_frame)), frame)
 
 
 if __name__ == "__main__":

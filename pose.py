@@ -12,7 +12,14 @@ from cubemos.skeleton_tracking.nativewrapper import Api, SkeletonKeypoints
 
 from Body import Body
 from utils import *
+from test_code import *
 
+video = 'sports_res_video/squat_001.avi'
+cap = cv2.VideoCapture(video)
+fps = cap.get(cv2.CAP_PROP_FPS)
+cap.set(cv2.CAP_PROP_FPS, 30)
+
+key_frame = 45
 
 # correct answer maintain time (seconds)
 correct_maintain_time = 3
@@ -107,7 +114,13 @@ def run():
 
         body = Body()
         start_bg = cv2.imread(os.path.join(RES_PATH, '000_000.jpg'))
-        # cv2.namedWindow("start", cv2.WINDOW_AUTOSIZE)
+        cv2.namedWindow("start", cv2.WINDOW_AUTOSIZE)
+
+        video = 'sports_res_video/squat_001.avi'
+        cap2 = cv2.VideoCapture(video)
+        fps = cap2.get(cv2.CAP_PROP_FPS)
+        cap2.set(cv2.CAP_PROP_FPS, 30)
+        key_frame = 45
 
         while True:
             frames = pipe.wait_for_frames()
@@ -121,8 +134,10 @@ def run():
             render_result(skeletons, color_image, confidence_threshold)
 
             res_for_show = load_res_by_persons(len(skeletons))
-            standard = [83, 102, 25, 105, 65, 29, -1, 19, -1]
+            standard = [52, 105, -1, 34, 156, 26, 176, 29, 62]
             # print(skeletons)
+
+            
 
             for i in skeletons:
                 body.set_body(i)
@@ -137,7 +152,7 @@ def run():
             cv2.namedWindow("preview", cv2.WINDOW_AUTOSIZE)
             cv2.imshow("preview", color_image)
 
-            key = cv2.waitKey(1)
+            key = cv2.waitKey(100)
             if key & 0xFF == ord('q') or key == 27:
                 cv2.destroyAllWindows()
                 break

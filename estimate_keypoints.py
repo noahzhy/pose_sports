@@ -85,6 +85,7 @@ class SKP:
                     self.body.set_body(i)
                     id = str(skeletons.index(i))
                     skps[id] = dict()
+                    skps[id]['key_frame'] = int(os.path.splitext(file_name)[0].split('_')[-1])
                     skps[id]['head'] = self.body.get_head_coordinates()
                     skps[id]['angles'] = self.body.calculate_angles()
                 json.dump(skps, f)
