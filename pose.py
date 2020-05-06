@@ -1,7 +1,9 @@
 import pyrealsense2 as rs
 import numpy as np
+import threading
 import platform
 import argparse
+import time
 import cv2
 import os
 
@@ -10,20 +12,15 @@ from cubemos.core.nativewrapper import CM_TargetComputeDevice
 from cubemos.core.nativewrapper import initialise_logging, CM_LogLevel
 from cubemos.skeleton_tracking.nativewrapper import Api, SkeletonKeypoints
 
-from Body import Body
+from Body import *
+from VideoControl import *
 from utils import *
 from test_code import *
 
-video = 'sports_res_video/squat_001.avi'
-cap = cv2.VideoCapture(video)
-fps = cap.get(cv2.CAP_PROP_FPS)
-cap.set(cv2.CAP_PROP_FPS, 30)
-
-key_frame = 45
 
 # correct answer maintain time (seconds)
 correct_maintain_time = 3
-correct_rate = 70
+correct_rate = 60
 confidence_threshold = 0.4
 skeleton_color = np.random.randint(256, size=3).tolist()
 
@@ -36,6 +33,7 @@ keypoint_ids = [
     (1, 2), (1, 5), (2, 3), (3, 4), (5, 6), (6, 7), (1, 8), (8, 9), (9, 10),
     (1, 11), (11, 12), (12, 13), (1, 0), (0, 14), (14, 16), (0, 15), (15, 17),
 ]
+
 
 def default_log_dir():
     if platform.system() == "Windows":
@@ -113,14 +111,9 @@ def run():
         api.load_model(CM_TargetComputeDevice.CM_CPU, model_path)
 
         body = Body()
-        start_bg = cv2.imread(os.path.join(RES_PATH, '000_000.jpg'))
-        cv2.namedWindow("start", cv2.WINDOW_AUTOSIZE)
-
-        video = 'sports_res_video/squat_001.avi'
-        cap2 = cv2.VideoCapture(video)
-        fps = cap2.get(cv2.CAP_PROP_FPS)
-        cap2.set(cv2.CAP_PROP_FPS, 30)
-        key_frame = 45
+        vc = VideoControl()
+        t1 = threading.Thread(target=vc.start_video, name='control')
+        t1.start()
 
         while True:
             frames = pipe.wait_for_frames()
@@ -133,27 +126,29 @@ def run():
             new_skeletons = api.update_tracking_id(skeletons, new_skeletons)
             render_result(skeletons, color_image, confidence_threshold)
 
-            res_for_show = load_res_by_persons(len(skeletons))
             standard = [52, 105, -1, 34, 156, 26, 176, 29, 62]
-            # print(skeletons)
-
-            
+            correct_score_list = list()
 
             for i in skeletons:
                 body.set_body(i)
-                correct_score = body.compare_skps_angles(10, standard)
-                if correct_score > correct_rate:
-                    cv2.putText(color_image, "success: {}".format(
-                        correct_score), (20, 25), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0), 2)
-                else:
-                    cv2.putText(color_image, "correct score: {}".format(
-                        correct_score), (20, 25), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
+                correct_score_list.append(
+                    body.compare_skps_angles(10, standard))
+
+            # global correct_score
+            correct_score = max(correct_score_list) if correct_score_list else 0
+
+            if correct_score >= correct_rate:
+                cv2.putText(color_image, "success: {}".format(
+                    correct_score), (20, 25), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0), 2)
+                vc.continue_video()
+            else:
+                cv2.putText(color_image, "correct score: {}".format(
+                    correct_score), (20, 25), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
 
             cv2.namedWindow("preview", cv2.WINDOW_AUTOSIZE)
             cv2.imshow("preview", color_image)
 
-            key = cv2.waitKey(100)
-            if key & 0xFF == ord('q') or key == 27:
+            if cv2.waitKey(1) & 0xFF == ord('q'):
                 cv2.destroyAllWindows()
                 break
 
