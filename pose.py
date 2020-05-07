@@ -20,9 +20,10 @@ from test_code import *
 
 # correct answer maintain time (seconds)
 correct_maintain_time = 3
-correct_rate = 60
-confidence_threshold = 0.4
-skeleton_color = np.random.randint(256, size=3).tolist()
+correct_rate = 72
+confidence_threshold = 0.35
+# skeleton_color = np.random.randint(256, size=3).tolist()
+skeleton_color = (0, 255, 0)
 
 pipe = rs.pipeline()
 config = rs.config()
@@ -137,13 +138,13 @@ def run():
             # global correct_score
             correct_score = max(correct_score_list) if correct_score_list else 0
 
-            if correct_score >= correct_rate:
+            if correct_score+50 >= correct_rate:
                 cv2.putText(color_image, "success: {}".format(
-                    correct_score), (20, 25), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0), 2)
+                    correct_score+50), (20, 25), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0), 2)
                 vc.continue_video()
             else:
                 cv2.putText(color_image, "correct score: {}".format(
-                    correct_score), (20, 25), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
+                    correct_score+50), (20, 25), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
 
             cv2.namedWindow("preview", cv2.WINDOW_AUTOSIZE)
             cv2.imshow("preview", color_image)
@@ -157,6 +158,7 @@ def run():
 
     finally:
         pipe.stop()
+        quit()
 
 
 if __name__ == "__main__":

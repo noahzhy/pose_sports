@@ -73,7 +73,7 @@ class Body:
                 without_empty.append(abs(x-y))
         for i in without_empty:
             if i < error_rate:
-                correct_score += int(100 / len(without_empty))
+                correct_score += int(50 / len(without_empty))
         return correct_score
 
 
